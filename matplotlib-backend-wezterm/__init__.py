@@ -37,18 +37,19 @@ class FigureManagerICat(FigureManagerBase):
         icat = __class__._run('wezterm', 'imgcat')
 
         if os.environ.get('MPLBACKEND_WEZTERM_SIZING', 'automatic') != 'manual':
-            self.canvas.figure.set_size_pixels(self.get_px())
+            self.canvas.figure.set_size_inches(*self.get_px())
 
         with BytesIO() as buf:
-            self.canvas.figure.savefig(buf, format='png', facecolor='#888888')
+            self.canvas.figure.savefig(buf, format='png')
             icat(output=False, input=buf.getbuffer())
     
     @staticmethod
-    def get_px() -> int:
+    def get_dimensions() -> tuple[int, int]:
         pane_dicts = json.loads(__class__.run("wezterm", "cli", "list" "--format", "json"))
         pane_id = int(os.environ.get("WEZTERM_PANE", "0"))
         pane_dict = list(filter(lambda d: d["pane_id"] == pane_id, pane_dicts))[0]
-        return itemgetter("pixel_height", "pixel_width")(pane_dict["size"])
+        h, w, dpi = itemgetter("pixel_height", "pixel_width", "dpi")(pane_dict["size"])
+        return (int(h / dpi), int(w / dpi))
 
 
 class FigureCanvasICat(FigureCanvasAgg):
