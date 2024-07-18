@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: CC0-1.0
 
+import json
+from operator import itemgetter
 import os
 import sys
 
@@ -34,26 +36,19 @@ class FigureManagerICat(FigureManagerBase):
 
         icat = __class__._run('wezterm', 'imgcat')
 
-        # if os.environ.get('MPLBACKEND_WEZTERM_SIZING', 'automatic') != 'manual':
-        #
-        #     tput = __class__._run('tput')
-        #
-        #     # gather terminal dimensions
-        #     rows = int(tput('lines'))
-        #     px = icat('--print-window-size')
-        #     px = list(map(int, px.split('x')))
-        #
-        #     # account for post-display prompt scrolling
-        #     # 3 line shift for [\n, <matplotlib.axes…, >>>] after the figure
-        #     px[1] -= int(3*(px[1]/rows))
-        #
-        #     # resize figure to terminal size & aspect ratio
-        #     dpi = self.canvas.figure.dpi
-        #     self.canvas.figure.set_size_inches((px[0] / dpi, px[1] / dpi))
+        if os.environ.get('MPLBACKEND_WEZTERM_SIZING', 'automatic') != 'manual':
+            self.canvas.figure.set_size_pixels(self.get_px())
 
         with BytesIO() as buf:
             self.canvas.figure.savefig(buf, format='png', facecolor='#888888')
             icat(output=False, input=buf.getbuffer())
+    
+    @staticmethod
+    def get_px() -> int:
+        pane_dicts = json.loads(__class__.run("wezterm", "cli", "list" "--format", "json"))
+        pane_id = int(os.environ.get("WEZTERM_PANE", "0"))
+        pane_dict = list(filter(lambda d: d["pane_id"] == pane_id, pane_dicts))[0]
+        return itemgetter("pixel_height", "pixel_width")(pane_dict["size"])
 
 
 class FigureCanvasICat(FigureCanvasAgg):
