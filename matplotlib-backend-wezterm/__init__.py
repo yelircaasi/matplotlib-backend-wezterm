@@ -37,7 +37,7 @@ class FigureManagerICat(FigureManagerBase):
         icat = __class__._run('wezterm', 'imgcat')
 
         if os.environ.get('MPLBACKEND_WEZTERM_SIZING', 'automatic') != 'manual':
-            self.canvas.figure.set_size_inches(*self.get_px())
+            self.canvas.figure.set_size_inches(*self.get_dimensions())
 
         with BytesIO() as buf:
             self.canvas.figure.savefig(buf, format='png')
