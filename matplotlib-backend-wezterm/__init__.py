@@ -45,7 +45,7 @@ class FigureManagerICat(FigureManagerBase):
     
     @staticmethod
     def get_dimensions() -> tuple[int, int]:
-        pane_dicts = json.loads(__class__._run("wezterm", "cli", "list" "--format", "json"))
+        pane_dicts = json.loads(__class__._run("wezterm", "cli", "list" "--format", "json")())
         pane_id = int(os.environ.get("WEZTERM_PANE", "0"))
         pane_dict = list(filter(lambda d: d["pane_id"] == pane_id, pane_dicts))[0]
         h, w, dpi = itemgetter("pixel_height", "pixel_width", "dpi")(pane_dict["size"])
